@@ -154,6 +154,55 @@ open class Highlightr
     }
     
     /**
+     Takes a String and returns a NSAttributedString and its language with the given language highlighted.
+     
+     - parameter code:           Code to highlight.
+     - parameter languageName:   Language name or alias. Set to `nil` to use auto detection.
+     - parameter fastRender:     Defaults to true - When *true* will use the custom made html parser rather than Apple's solution.
+     
+     - returns: NSAttributedString with the detected code highlighted, and its language
+     */
+    open func highlightAndGetLang(_ code: String, as languageName: String? = nil, fastRender: Bool = true) -> (resultString: NSAttributedString?, lang: String?)
+    {
+        let ret: JSValue
+        if let languageName = languageName
+        {
+            ret = hljs.invokeMethod("highlight", withArguments: [languageName, code, ignoreIllegals])
+        }else
+        {
+            // language auto detection
+            ret = hljs.invokeMethod("highlightAuto", withArguments: [code])
+        }
+
+        let res = ret.objectForKeyedSubscript("value")
+        guard var string = res!.toString() else
+        {
+            return (nil, nil)
+        }
+        
+        var returnString : NSAttributedString?
+        if(fastRender)
+        {
+            returnString = processHTMLString(string)!
+        }else
+        {
+            string = "<style>"+theme.lightTheme+"</style><pre><code class=\"hljs\">"+string+"</code></pre>"
+            let opt: [NSAttributedString.DocumentReadingOptionKey : Any] = [
+             .documentType: NSAttributedString.DocumentType.html,
+             .characterEncoding: String.Encoding.utf8.rawValue
+             ]
+            
+            let data = string.data(using: String.Encoding.utf8)!
+            safeMainSync
+            {
+                returnString = try? NSMutableAttributedString(data:data, options: opt, documentAttributes:nil)
+            }
+        }
+        
+        return (returnString, string)
+    }
+    
+    /**
      Returns a list of all the available themes.
      
      - returns: Array of Strings
