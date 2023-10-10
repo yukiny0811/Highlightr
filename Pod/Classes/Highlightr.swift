@@ -199,7 +199,10 @@ open class Highlightr
             }
         }
         
-        return (returnString, string)
+        guard let lang = ret.objectForKeyedSubscript("language").toString() else {
+            return (returnString, nil)
+        }
+        return (returnString, lang)
     }
     
     /**
