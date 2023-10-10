@@ -104,6 +104,10 @@ open class Highlightr
         return true
     }
     
+    open func unregisterLanguage(languageName: String) {
+        hljs.invokeMethod("unregisterLanguage", withArguments: [languageName])
+    }
+    
     /**
      Takes a String and returns a NSAttributedString with the given language highlighted.
      
